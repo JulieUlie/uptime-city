@@ -1,0 +1,10 @@
+// Cloudflare Worker config for Uptime City (static assets only, no build step).
+// Deploy from this folder with: npx wrangler deploy
+{
+  "name": "uptimecity",
+  "compatibility_date": "2026-10-01",
+  "assets": {
+    "directory": "./",
+    "not_found_handling": "single-page-application"
+  }
+}

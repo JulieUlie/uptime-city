@@ -1,0 +1,13 @@
+City symbols used on the billboards and flags (Wikimedia Commons):
+
+antwerpen-flag.svg - "Flag of Antwerp (City).svg", public domain (municipal flag, red-white-red 1:3:1)
+                 https://commons.wikimedia.org/wiki/File:Flag_of_Antwerp_(City).svg
+
+antwerpen.svg  - "Coat of arms of Antwerp (City).svg", public domain
+                 https://commons.wikimedia.org/wiki/File:Coat_of_arms_of_Antwerp_(City).svg
+gent.svg       - "Wapen van Gent.svg", public domain
+                 https://commons.wikimedia.org/wiki/File:Wapen_van_Gent.svg
+brussel.svg    - "Flag of the Brussels-Capital Region.svg", public domain (SVG by SiBr4)
+                 https://commons.wikimedia.org/wiki/File:Flag_of_the_Brussels-Capital_Region.svg
+
+The De Lijn-style badge on buses and trams is simple original art, not the official De Lijn logo.

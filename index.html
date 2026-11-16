@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="google-site-verification" content="lThorNYCocqBo_amd4jxROF6rq3bt0yQuDfH-CcMO04" />
+  <title>Uptime City</title>
+  <meta name="description" content="A cosy board-game city builder set in Antwerpen, Brussel and Gent: build, craft, wire up IoT integrations and automate your city.">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Uptime City">
+  <meta property="og:title" content="UPTIME CITY: a city management game">
+  <meta property="og:description" content="Build, repair and keep the lights on. A cosy city builder set in Antwerpen, Brussel, Gent and Oasis Bay.">
+  <meta property="og:url" content="https://uptimecity.julietous.workers.dev/">
+  <meta property="og:image" content="https://uptimecity.julietous.workers.dev/og-20261116.jpg">
+  <meta property="og:image:secure_url" content="https://uptimecity.julietous.workers.dev/og-20261116.jpg">
+  <meta property="og:image:type" content="image/jpeg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="Uptime City: the title card next to an isometric game board of Antwerpen">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="UPTIME CITY: a city management game">
+  <meta name="twitter:description" content="Build, repair and keep the lights on. A cosy city builder set in Antwerpen, Brussel, Gent and Oasis Bay.">
+  <meta name="twitter:image" content="https://uptimecity.julietous.workers.dev/og-20261116.jpg">
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@500;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/game.css">
+</head>
+<body>
+  <canvas id="city"></canvas>
+
+  <header class="hud">
+    <div class="brand"><span class="logo">🏙️</span><div><b>Uptime City</b><small id="s-city">Antwerpen</small></div></div>
+    <div class="stats">
+      <div class="stat money" title="Treasury"><i>💶</i><div><small>Treasury</small><b id="s-cash">€0</b></div></div>
+      <div class="stat" title="Population"><i>👥</i><div><small>Residents</small><b id="s-pop">0</b></div></div>
+      <div class="stat" title="Happiness"><i id="s-mood">😊</i><div><small>Happiness</small><b id="s-happy">0%</b></div></div>
+      <div class="stat" title="Power balance"><i>⚡</i><div><small>Power</small><b id="s-power">0</b></div></div>
+      <div class="stat" title="Compute used / available"><i>🧠</i><div><small>Compute</small><b id="s-compute">0/0</b></div></div>
+      <div class="stat" title="Jobs filled"><i>💼</i><div><small>Jobs</small><b id="s-jobs">0/0</b></div></div>
+    </div>
+    <div class="weather" id="weather" title="Live weather"></div>
+    <div class="clock">
+      <div class="time"><span id="s-sun">☀️</span><b id="s-time">Day 1 · 08:00</b></div>
+      <div class="speed" role="group" aria-label="Game speed">
+        <button data-speed="0" title="Pause (Space)">⏸</button>
+        <button data-speed="1" class="on" title="Normal">▶</button>
+        <button data-speed="3" title="Fast">⏩</button>
+        <button data-speed="8" title="Super fast">🚀</button>
+      </div>
+      <button id="btn-photo" class="icon-btn" title="Photo mode: colour grade (P)">📷</button>
+      <button id="btn-fit" class="icon-btn" title="Fit the board to the screen (F)">⌖</button>
+      <button id="btn-menu" class="icon-btn" title="Menu">☰</button>
+    </div>
+  </header>
+
+  <aside class="build" id="build">
+    <div class="build-head"><b>Build</b><button class="chip" id="tool-bulldoze" title="Demolish (B)">🧹 Demolish</button></div>
+    <div class="build-list" id="build-list"></div>
+  </aside>
+
+  <section class="panel closed" id="panel">
+    <nav class="tabs" id="tabs">
+      <button data-tab="finance" class="on">💶 <span>Finance</span></button>
+      <button data-tab="craft">🔧 <span>Craft</span></button>
+      <button data-tab="market">📈 <span>Market</span></button>
+      <button data-tab="integrations">🔗 <span>Integrations</span></button>
+      <button data-tab="automate">⚙️ <span>Automate</span></button>
+      <button data-tab="disasters">🌪️ <span>Disasters</span></button>
+      <button class="tab-close" id="panel-close" title="Hide panel">»</button>
+    </nav>
+    <div class="tab-body" id="tab-body"></div>
+  </section>
+
+  <div class="inspector" id="inspector" hidden></div>
+
+  <section class="console collapsed" id="console">
+    <div class="console-head"><b>📟 City log</b><button class="icon-btn small" id="console-toggle" title="Expand">▴</button></div>
+    <ol id="log"></ol>
+  </section>
+
+  <div class="toasts" id="toasts" aria-live="polite"></div>
+
+  <div class="modal" id="menu" hidden>
+    <div class="card">
+      <div class="card-band" style="background:#2f5fa8">Mayor's office</div>
+      <h2>Uptime City</h2>
+      <p>Build homes, power and Wi-Fi lampposts. Mine raw materials, craft gadgets in a Maker Workshop, wire up IT integrations, and let automation rules run the city for you.</p>
+      <ul class="howto">
+        <li><b>Click</b> a building in the left list, then click a green lot.</li>
+        <li><b>Drag</b> to pan, <b>scroll</b> to zoom, <b>Esc</b> to cancel.</li>
+        <li>The weather on the board is the <b>real weather</b> in your city right now.</li>
+        <li>Everything that uses power 🔌 switches off when the grid runs short. Shops, offices and servers stop without Wi-Fi 📵, factories run at half speed.</li>
+        <li>Red <b>!</b> means an incident. Click it to patch it.</li>
+      </ul>
+      <b class="pick-title">Start a new city</b>
+      <div class="cities" id="cities"></div>
+      <div class="row">
+        <button class="btn" id="m-save">💾 Save</button>
+        <button class="btn" id="m-tut">🎓 Tutorial</button>
+        <button class="btn primary" id="m-close">Continue ▶</button>
+      </div>
+      <small class="muted">City symbols: Wikimedia Commons (public domain). Weather: Open-Meteo.</small>
+      <small class="muted">New here? Pick a city and a short tutorial will guide you. The game autosaves every in-game day.</small>
+    </div>
+  </div>
+
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>
