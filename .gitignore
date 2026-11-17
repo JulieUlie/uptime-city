@@ -1,4 +1,4 @@
-.wrangler/
 node_modules/
-.dev.vars
-*.zip
+.wrangler/
+test-results/
+playwright-report/

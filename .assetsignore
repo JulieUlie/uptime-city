@@ -4,3 +4,12 @@ README.md
 .claude-launch.tmp
 
 .claude
+
+node_modules
+tests
+package.json
+package-lock.json
+playwright.config.ts
+test-results
+playwright-report
+.gitignore

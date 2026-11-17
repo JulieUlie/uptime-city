@@ -1,0 +1,21 @@
+{
+  "name": "uptime-city",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev --port 8794 --ip 127.0.0.1",
+    "test": "playwright test",
+    "test:logic": "playwright test --project=logic",
+    "test:ui": "playwright test --project=chromium --project=mobile"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "^4.14.0",
+    "@playwright/test": "^1.65.1",
+    "@types/node": "^26.6.6",
+    "wrangler": "^4.164.0"
+  },
+  "allowScripts": {
+    "esbuild@0.28.2": true,
+    "workerd@1.20261117.1": true
+  }
+}
