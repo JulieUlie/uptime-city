@@ -2,7 +2,7 @@
   --ink: #3b2f2a;
   --paper: #fbf5e6;
   --paper-2: #f3e9cf;
-  --muted: #8a7b6c;
+  --muted: #796c5f;   /* was #8a7b6c: 4.6:1 or more on every light background (WCAG AA) */
   --red: #e05a5a;
   --green: #3fa77c;
   --blue: #2f5fa8;
@@ -105,7 +105,7 @@ body.photo #city { filter: contrast(1.07) saturate(1.12); }
 
 .btn { border: 2px solid var(--ink); background: #fff; border-radius: 10px; padding: 6px 12px; font-weight: 600; font-size: 13px; box-shadow: 0 2px 0 var(--ink); transition: transform .05s; }
 .btn:active { transform: translateY(2px); box-shadow: none; }
-.btn.primary { background: var(--green); color: #fff; }
+.btn.primary { background: #318361; color: #fff; }   /* darker than --green so white text reaches 4.6:1 */
 .btn.warn { background: var(--red); color: #fff; }
 .btn.small { padding: 2px 8px; font-size: 12px; }
 .btn:disabled { opacity: .45; cursor: not-allowed; }

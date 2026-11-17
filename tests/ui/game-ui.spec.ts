@@ -45,18 +45,15 @@ test.describe('First visit', () => {
     await page.goto('/');
     await ready(page);
 
-    // the game asks to confirm (see the known issue below); answer yes like a player would
-    page.once('dialog', (d) => d.accept());
     await page.locator('#cities .city', { hasText: 'Gent' }).click();
 
     await expect(menu(page)).toBeHidden();
     await expect(hud(page, 'city')).toHaveText('Gent');
   });
 
-  // Known issue (17 Nov 2026): the "has the player started?" check counts the houses that every new
-  // city starts with, so even a first-time visitor is warned "Your current city will be lost".
+  // Regression test: until 17 Nov 2026 the starting houses counted as "already built", so even a
+  // first-time visitor was warned "Your current city will be lost".
   test('a brand-new visitor is not warned about losing a city', async ({ page }) => {
-    test.fail(true, 'the starting houses count as "already built"');
     await fakeWeather(page);
     await page.goto('/');
     await ready(page);
@@ -159,10 +156,9 @@ test.describe('Saving', () => {
 });
 
 test.describe('Accessibility', () => {
-  // Known finding (17 Nov 2026): some light text in the menu and the HUD is under the 4.5:1 contrast
-  // of WCAG AA. Kept visible as expected failures; remove test.fail once the colours are fixed.
+  // Regression tests: until 17 Nov 2026 the secondary text (#8a7b6c) and the green Continue button
+  // were under the 4.5:1 contrast of WCAG AA.
   test('the menu has no detectable WCAG violations', async ({ page }) => {
-    test.fail(true, 'text contrast under 4.5:1');
     await fakeWeather(page);
     await page.goto('/');
     await ready(page);
@@ -174,7 +170,6 @@ test.describe('Accessibility', () => {
   });
 
   test('the HUD has no detectable WCAG violations', async ({ city: page }) => {
-    test.fail(true, 'text contrast under 4.5:1');
     const results = await new AxeBuilder({ page }).include('.hud').withTags(['wcag2a', 'wcag2aa']).analyze();
 
     expect(results.violations.map((v) => `${v.id}: ${v.nodes.length}× ${v.help}`)).toEqual([]);

@@ -169,7 +169,8 @@ function renderCities() {
   const box = document.getElementById('cities');
   box.innerHTML = MAP_ORDER.map((id) => `<button class="city ${G.S.map === id ? 'current' : ''}" data-city="${id}"><div class="band" style="background:${MAPS[id].color}"></div><span class="ic">${CITY_ICONS[id]}</span><b>${MAPS[id].name}</b><small>${MAPS[id].tagline}</small></button>`).join('');
   box.querySelectorAll('.city').forEach((b) => b.onclick = () => {
-    const started = G.buildingsList().some((x) => !BUILDINGS[x.type].landmark) || G.S.day > 1;
+    // only what the player built counts: landmarks and the starting houses (base) are part of every new city
+    const started = G.buildingsList().some((x) => !BUILDINGS[x.type].landmark && !BUILDINGS[x.type].base) || G.S.day > 1;
     if (started && !confirm(`Start a new city in ${MAPS[b.dataset.city].name}? Your current city will be lost.`)) return;
     G.wipe(b.dataset.city); document.getElementById('menu').hidden = true; initTutorial();
   });
