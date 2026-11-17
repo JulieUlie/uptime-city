@@ -34,7 +34,7 @@ Playwright tests in TypeScript: `npm install`, then `npm test` (serves the game 
 - `tests/logic/`: the simulation in `js/game.js`, driven directly: new cities in all four maps, placing and demolishing (with every refusal), power, the market, loans, the clock and autosave, crafting, disasters, saving and loading (also old or damaged saves).
 - `tests/ui/`: the first-visit menu and city picker, the HUD and live weather (also offline), time and pause, the build list, tools, panels, keyboard shortcuts, saving across a reload, and axe scans.
 
-43 tests. Known findings kept visible as `test.fail`: a first-time visitor is warned "Your current city will be lost" when picking a city (the starting houses count as already built), and some text in the menu and HUD is under the 4.5:1 contrast of WCAG AA.
+43 tests. They found two issues, both fixed in v10 and now guarded by regression tests: a first-time visitor was warned "Your current city will be lost" when picking a city (the starting houses counted as already built), and some text in the menu and HUD was under the 4.5:1 contrast of WCAG AA.
 
 ## Deployment
 
