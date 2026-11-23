@@ -190,7 +190,7 @@ const PANELS = {
       <h3>Treasury <span class="muted" style="font-size:12px">last 5 days</span></h3>
       <canvas class="chart" id="f-chart"></canvas>
       <h3>Tax rate <b id="f-taxv"></b></h3>
-      <input type="range" min="${TAX.min}" max="${TAX.max}" class="slider" id="f-tax">
+      <input type="range" min="${TAX.min}" max="${TAX.max}" class="slider" id="f-tax" aria-label="Tax rate">
       <div class="hint">Tax runs from ${TAX.min}% to ${TAX.max}%. Most of it goes to the region and social security, so the city only keeps a small slice. Higher tax makes residents grumpy; ${TAX.start}% is the sweet spot.</div>
       <h3>Today so far</h3><table class="ledger" id="f-today"></table>
       <h3>Yesterday</h3><table class="ledger" id="f-yday"></table>
@@ -247,8 +247,8 @@ const PANELS = {
 
   market: {
     html: () => `<div class="hint">Prices move every hour. Sell when they're high, or let an automation rule do it for you.</div>
-      <div id="m-rows">${Object.keys(RESOURCES).map((k) => `<div class="mrow" data-k="${k}"><span class="nm">${RESOURCES[k].icon} ${RESOURCES[k].name} <small class="muted st"></small></span><canvas></canvas><span class="pr"></span>
-      <span class="row" style="gap:3px;flex-wrap:nowrap"><button class="btn small sell">Sell</button><button class="btn small buy">Buy 5</button></span></div>`).join('')}</div>`,
+      <div id="m-rows">${Object.keys(RESOURCES).map((k) => `<div class="mrow" data-k="${k}"><span class="nm">${RESOURCES[k].icon} ${RESOURCES[k].name} <small class="muted st"></small></span><canvas aria-hidden="true"></canvas><span class="pr"></span>
+      <span class="row" style="gap:3px;flex-wrap:nowrap"><button class="btn small sell" aria-label="Sell all ${RESOURCES[k].name}">Sell</button><button class="btn small buy" aria-label="Buy 5 ${RESOURCES[k].name}">Buy 5</button></span></div>`).join('')}</div>`,
     bind(b) {
       b.querySelectorAll('.mrow').forEach((el) => {
         const k = el.dataset.k;
@@ -345,12 +345,12 @@ const PANELS = {
       <h3>New rule</h3>
       <div class="builder">
         <label>WHEN</label>
-        <div class="line"><select id="r-trig">${Object.entries(TRIGGERS).map(([k, t]) => `<option value="${k}">${t.label.replace('{res}', '…')}</option>`).join('')}</select>
-          <select id="r-tres">${resOptions('chip')}</select><input id="r-targ" type="number" value="50" style="width:70px"></div>
+        <div class="line"><select id="r-trig" aria-label="When (trigger)">${Object.entries(TRIGGERS).map(([k, t]) => `<option value="${k}">${t.label.replace('{res}', '…')}</option>`).join('')}</select>
+          <select id="r-tres" aria-label="Trigger resource">${resOptions('chip')}</select><input id="r-targ" type="number" value="50" style="width:70px" aria-label="Trigger amount"></div>
         <label>THEN</label>
-        <div class="line"><select id="r-act">${Object.entries(ACTIONS).map(([k, a]) => `<option value="${k}">${a.label.replace('{res}', '…').replace('{recipe}', '…')}</option>`).join('')}</select>
-          <select id="r-ares">${resOptions('chip')}</select>
-          <select id="r-arec">${RECIPES.map((r) => `<option value="${r.out}">${RESOURCES[r.out].icon} ${RESOURCES[r.out].name}</option>`).join('')}</select></div>
+        <div class="line"><select id="r-act" aria-label="Then (action)">${Object.entries(ACTIONS).map(([k, a]) => `<option value="${k}">${a.label.replace('{res}', '…').replace('{recipe}', '…')}</option>`).join('')}</select>
+          <select id="r-ares" aria-label="Action resource">${resOptions('chip')}</select>
+          <select id="r-arec" aria-label="Recipe to craft">${RECIPES.map((r) => `<option value="${r.out}">${RESOURCES[r.out].icon} ${RESOURCES[r.out].name}</option>`).join('')}</select></div>
         <button class="btn primary" id="r-add">➕ Add rule</button>
       </div>
       <h3>Active rules</h3><div id="a-rules"></div>`,
@@ -380,7 +380,7 @@ const PANELS = {
       if (box.dataset.key === key) return;
       box.dataset.key = key;
       box.innerHTML = G.S.rules.length ? G.S.rules.map((r) => { const t = G.ruleText(r); return `<div class="rule ${r.on ? '' : 'off'}" data-id="${r.id}">
-        <div class="ctl"><button class="btn small tg">${r.on ? 'On' : 'Off'}</button><button class="btn small del">✕</button></div>
+        <div class="ctl"><button class="btn small tg">${r.on ? 'On' : 'Off'}</button><button class="btn small del" aria-label="Delete this rule" title="Delete this rule">✕</button></div>
         <div><span class="w">WHEN</span> ${t.when}</div><div><span class="t">THEN</span> ${t.then}</div></div>`; }).join('') : '<span class="muted" style="font-size:13px">No rules yet. Try a template!</span>';
       box.querySelectorAll('.rule').forEach((el) => {
         const id = +el.dataset.id;

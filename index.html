@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="google-site-verification" content="lThorNYCocqBo_amd4jxROF6rq3bt0yQuDfH-CcMO04" />
   <title>Uptime City</title>
-  <meta name="description" content="A cosy board-game city builder set in Antwerpen, Brussel and Gent: build, craft, wire up IoT integrations and automate your city.">
+  <meta name="description" content="A cosy board-game city builder set in Antwerpen, Brussel, Gent and Oasis Bay: build, craft, wire up IoT integrations and automate your city.">
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="Uptime City">
   <meta property="og:title" content="UPTIME CITY: a city management game">
@@ -44,14 +44,14 @@
     <div class="clock">
       <div class="time"><span id="s-sun">☀️</span><b id="s-time">Day 1 · 08:00</b></div>
       <div class="speed" role="group" aria-label="Game speed">
-        <button data-speed="0" title="Pause (Space)">⏸</button>
-        <button data-speed="1" class="on" title="Normal">▶</button>
-        <button data-speed="3" title="Fast">⏩</button>
-        <button data-speed="8" title="Super fast">🚀</button>
+        <button data-speed="0" title="Pause (Space)" aria-label="Pause" aria-pressed="false">⏸</button>
+        <button data-speed="1" class="on" title="Normal speed (1)" aria-label="Normal speed" aria-pressed="true">▶</button>
+        <button data-speed="3" title="Fast (2)" aria-label="Fast" aria-pressed="false">⏩</button>
+        <button data-speed="8" title="Super fast (3)" aria-label="Super fast" aria-pressed="false">🚀</button>
       </div>
-      <button id="btn-photo" class="icon-btn" title="Photo mode: colour grade (P)">📷</button>
-      <button id="btn-fit" class="icon-btn" title="Fit the board to the screen (F)">⌖</button>
-      <button id="btn-menu" class="icon-btn" title="Menu">☰</button>
+      <button id="btn-photo" class="icon-btn" title="Photo mode: colour grade (P)" aria-label="Photo mode" aria-pressed="true">📷</button>
+      <button id="btn-fit" class="icon-btn" title="Fit the board to the screen (F)" aria-label="Fit the board to the screen">⌖</button>
+      <button id="btn-menu" class="icon-btn" title="Menu" aria-label="Menu" aria-haspopup="dialog" aria-controls="menu">☰</button>
     </div>
   </header>
 
@@ -68,24 +68,24 @@
       <button data-tab="integrations">🔗 <span>Integrations</span></button>
       <button data-tab="automate">⚙️ <span>Automate</span></button>
       <button data-tab="disasters">🌪️ <span>Disasters</span></button>
-      <button class="tab-close" id="panel-close" title="Hide panel">»</button>
+      <button class="tab-close" id="panel-close" title="Hide panel" aria-label="Hide panel">»</button>
     </nav>
-    <div class="tab-body" id="tab-body"></div>
+    <div class="tab-body" id="tab-body" tabindex="0" role="region" aria-label="Side panel"></div>
   </section>
 
   <div class="inspector" id="inspector" hidden></div>
 
   <section class="console collapsed" id="console">
-    <div class="console-head"><b>📟 City log</b><button class="icon-btn small" id="console-toggle" title="Expand">▴</button></div>
-    <ol id="log"></ol>
+    <div class="console-head"><b>📟 City log</b><button class="icon-btn small" id="console-toggle" title="Show the city log" aria-label="Show the city log" aria-expanded="false" aria-controls="log">▴</button></div>
+    <ol id="log" tabindex="0" aria-label="City log"></ol>
   </section>
 
   <div class="toasts" id="toasts" aria-live="polite"></div>
 
   <div class="modal" id="menu" hidden>
-    <div class="card">
+    <div class="card" role="dialog" aria-modal="true" aria-labelledby="menu-title" tabindex="-1">
       <div class="card-band" style="background:#2f5fa8">Mayor's office</div>
-      <h2>Uptime City</h2>
+      <h2 id="menu-title">Uptime City</h2>
       <p>Build homes, power and Wi-Fi lampposts. Mine raw materials, craft gadgets in a Maker Workshop, wire up IT integrations, and let automation rules run the city for you.</p>
       <ul class="howto">
         <li><b>Click</b> a building in the left list, then click a green lot.</li>

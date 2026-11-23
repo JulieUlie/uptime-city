@@ -1,4 +1,4 @@
-import { test as base, expect, Page } from '@playwright/test';
+import { test as base, expect, Page, Route } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 
 /** The real weather is faked: 7.4 °C and rain (WMO code 61) in every city. */
@@ -140,8 +140,7 @@ test.describe('Building and panels', () => {
 
 test.describe('Saving', () => {
   test('"Save" in the menu confirms, and the city comes back after a reload', async ({ city: page }) => {
-    // the menu button is named "☰" for screen readers (title="Menu" is only a tooltip), so use its id
-    await page.locator('#btn-menu').click();
+    await page.getByRole('button', { name: 'Menu' }).click();
     page.once('dialog', (d) => d.accept());
     await page.locator('#cities .city', { hasText: 'Brussel' }).click();
     await expect(hud(page, 'city')).toHaveText('Brussel');
@@ -173,5 +172,174 @@ test.describe('Accessibility', () => {
     const results = await new AxeBuilder({ page }).include('.hud').withTags(['wcag2a', 'wcag2aa']).analyze();
 
     expect(results.violations.map((v) => `${v.id}: ${v.nodes.length}× ${v.help}`)).toEqual([]);
+  });
+});
+
+// ---------- v11 (23 Nov 2026): regression tests for the refinements ----------
+
+test.describe('The menu as a dialog', () => {
+  test('opens as a named dialog with focus inside, and Escape gives focus back to the menu button', async ({ city: page }) => {
+    const menuButton = page.getByRole('button', { name: 'Menu' });
+    await menuButton.focus();
+    await page.keyboard.press('Enter');
+
+    const dialog = page.getByRole('dialog', { name: 'Uptime City' });
+    await expect(dialog).toBeVisible();
+    await expect(dialog).toBeFocused();
+
+    await page.keyboard.press('Escape');
+    await expect(dialog).toBeHidden();
+    await expect(menuButton).toBeFocused();
+  });
+
+  // Regression test: until v11 the menu was centred with place-items: center and could not scroll, so on
+  // a short (landscape) screen its title and its buttons were cut off with no way to reach them.
+  test('on a short screen the whole menu can be scrolled into reach', async ({ page }) => {
+    await page.setViewportSize({ width: 800, height: 420 });
+    await fakeWeather(page);
+    await page.goto('/');
+    await ready(page);
+
+    const top = await page.locator('#menu-title').evaluate((h) => h.getBoundingClientRect().top);
+    expect(top).toBeGreaterThanOrEqual(0);
+    await page.locator('#m-close').scrollIntoViewIfNeeded();
+    await page.locator('#m-close').click();
+
+    await expect(menu(page)).toBeHidden();
+  });
+
+  test('game shortcuts do nothing while the menu is open', async ({ city: page }) => {
+    await page.getByRole('button', { name: 'Menu' }).click();
+    await page.keyboard.press('b');
+    await expect(page.locator('#tool-bulldoze')).not.toHaveClass(/\bon\b/);
+  });
+});
+
+test.describe('Keyboard and screen readers', () => {
+  test('the icon-only buttons have names, and the speed buttons say which one is pressed', async ({ city: page }) => {
+    for (const name of ['Menu', 'Pause', 'Normal speed', 'Fast', 'Super fast', 'Photo mode', 'Fit the board to the screen']) {
+      await expect(page.getByRole('button', { name, exact: true })).toHaveCount(1);
+    }
+    await expect(page.getByRole('button', { name: 'Normal speed' })).toHaveAttribute('aria-pressed', 'true');
+
+    await page.getByRole('button', { name: 'Fast', exact: true }).click();
+
+    await expect(page.getByRole('button', { name: 'Fast', exact: true })).toHaveAttribute('aria-pressed', 'true');
+    await expect(page.getByRole('button', { name: 'Normal speed' })).toHaveAttribute('aria-pressed', 'false');
+  });
+
+  test('the city log toggle says whether it shows or hides the log', async ({ city: page }) => {
+    const toggle = page.locator('#console-toggle');
+    await expect(toggle).toHaveAccessibleName('Show the city log');
+    await expect(toggle).toHaveAttribute('aria-expanded', 'false');
+
+    await toggle.click();
+
+    await expect(toggle).toHaveAccessibleName('Hide the city log');
+    await expect(toggle).toHaveAttribute('aria-expanded', 'true');
+  });
+
+  // Regression test: until v11 Ctrl+P (print) also switched photo mode on, and Ctrl+F (find) refitted the board.
+  test('browser shortcuts with Ctrl do not trigger game shortcuts', async ({ city: page }) => {
+    const photoButton = page.getByRole('button', { name: 'Photo mode' });
+    await expect(photoButton).toHaveAttribute('aria-pressed', 'true'); // photo mode is on by default
+
+    await page.evaluate(() => window.dispatchEvent(new KeyboardEvent('keydown', { key: 'p', ctrlKey: true })));
+    await expect(photoButton).toHaveAttribute('aria-pressed', 'true');
+    await expect(page.locator('body')).toHaveClass(/\bphoto\b/);
+
+    await page.keyboard.press('p');
+    await expect(photoButton).toHaveAttribute('aria-pressed', 'false');
+    await expect(page.locator('body')).not.toHaveClass(/\bphoto\b/);
+  });
+
+  // Regression test: until v11 the market prices, ledger amounts and the red buttons (buying a disaster,
+  // Demolish while on) used the plain red and green of the board: 3:1 to 3.6:1 against their background.
+  test('the six side panels and the build list have no detectable WCAG violations', async ({ city: page }) => {
+    const build = await new AxeBuilder({ page }).include('#build').withTags(['wcag2a', 'wcag2aa']).analyze();
+    expect(build.violations.map((v) => `build ${v.id}: ${v.nodes.map((n) => n.target.join(' ')).join(', ')}`)).toEqual([]);
+
+    for (const tab of ['market', 'automate', 'craft', 'integrations', 'disasters', 'finance']) {
+      await page.locator(`#tabs [data-tab="${tab}"]`).click();
+      await expect(page.locator('#tab-body')).toHaveAttribute('data-tab', tab);
+      await expect(page.locator('#panel')).not.toHaveClass(/\bclosed\b/);
+      const results = await new AxeBuilder({ page }).include('#panel').withTags(['wcag2a', 'wcag2aa']).analyze();
+      expect(results.violations.map((v) => `${tab} ${v.id}: ${v.nodes.map((n) => n.target.join(' ')).join(', ')}`)).toEqual([]);
+    }
+  });
+
+  test('with reduced motion the live weather dot does not keep blinking', async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await fakeWeather(page);
+    await page.goto('/');
+    await ready(page);
+
+    await expect(page.locator('#weather .live-dot')).toHaveCSS('animation-iteration-count', '1');
+  });
+});
+
+test.describe('Market', () => {
+  // Regression test: until v11 the resource names were squeezed next to the chart and cut to "Sili…", "Cop…".
+  test('every resource name is shown in full @mobile', async ({ city: page }) => {
+    await page.locator('#tabs [data-tab="market"]').click();
+    const names = page.locator('.mrow .nm');
+    await expect(names).toHaveCount(9);
+
+    const cut = await names.evaluateAll((els) => els.filter((e) => e.scrollWidth > e.clientWidth).map((e) => e.textContent));
+    expect(cut).toEqual([]);
+  });
+});
+
+test.describe('Fixes', () => {
+  // Regression test: until v11 "Save" in the menu wrote the save twice (once for the text, once for the colour).
+  test('"Save" writes the city once', async ({ city: page }) => {
+    await page.getByRole('button', { name: 'Pause' }).click(); // no autosave in between
+    await page.evaluate(() => {
+      const w = window as any; w.__saves = 0;
+      const orig = Storage.prototype.setItem;
+      Storage.prototype.setItem = function (k: string, v: string) { if (k === 'uptime-city-save-v1') w.__saves++; return orig.call(this, k, v); };
+    });
+    await page.getByRole('button', { name: 'Menu' }).click();
+    await page.locator('#m-save').click();
+
+    await expect(page.locator('#toasts')).toContainText('Saved!');
+    expect(await page.evaluate(() => (window as any).__saves)).toBe(1);
+  });
+
+  // Regression test: until v11 a slow weather answer for the old city, arriving after the player had
+  // switched cities, painted the old city's weather (and kept refreshing the old city every 10 minutes).
+  test('a late weather answer for the previous city does not overwrite the new one', async ({ page }) => {
+    // Antwerpen's answer is held back (the route is only answered later); Gent answers snow at once
+    let antwerpen: Route | undefined;
+    await page.route('https://api.open-meteo.com/**', (r) => {
+      if (new URL(r.request().url()).searchParams.get('latitude') === '51.2194') { antwerpen = r; return; }
+      return r.fulfill({ json: { current: { temperature_2m: -2, weather_code: 71, wind_speed_10m: 5, cloud_cover: 100 } } });
+    });
+    await page.goto('/');
+    await ready(page);
+    await expect.poll(() => !!antwerpen).toBe(true);
+
+    await page.locator('#cities .city', { hasText: 'Gent' }).click();
+    await expect(page.locator('#weather')).toContainText('Snow · -2°C');
+    await antwerpen!.fulfill({ json: { current: { temperature_2m: 9, weather_code: 61, wind_speed_10m: 10, cloud_cover: 90 } } });
+    await page.waitForTimeout(500);
+
+    await expect(page.locator('#weather')).toContainText('Live · Gent');
+    await expect(page.locator('#weather')).toContainText('Snow · -2°C');
+  });
+
+  // Regression test: until v11 the badge said "Weather offline" while the first answer was still on its way.
+  test('while the weather is on its way the badge says Loading, not offline', async ({ page }) => {
+    let pending: Route | undefined;
+    await page.route('https://api.open-meteo.com/**', (r) => { pending = r; });
+    await page.goto('/');
+    await ready(page);
+
+    await expect(page.locator('#weather')).toContainText('Loading…');
+    await expect(page.locator('#weather')).not.toContainText('offline');
+
+    await expect.poll(() => !!pending).toBe(true);
+    await pending!.fulfill({ json: { current: { temperature_2m: 7.4, weather_code: 61, wind_speed_10m: 18, cloud_cover: 90 } } });
+    await expect(page.locator('#weather')).toContainText('Rain · 7°C');
   });
 });

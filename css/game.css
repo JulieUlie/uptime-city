@@ -2,9 +2,12 @@
   --ink: #3b2f2a;
   --paper: #fbf5e6;
   --paper-2: #f3e9cf;
-  --muted: #796c5f;   /* was #8a7b6c: 4.6:1 or more on every light background (WCAG AA) */
+  --muted: #6f6357;   /* v10 #796c5f was only 4.2:1 on --paper-2 (the hint boxes); now 4.8:1 or more on every light background (WCAG AA) */
   --red: #e05a5a;
   --green: #3fa77c;
+  /* darker red and green for text: --red and --green themselves are only 3.6:1 and 3:1 on white */
+  --red-ink: #b83737;
+  --green-ink: #2b7655;
   --blue: #2f5fa8;
   --teal: #3fb6a8;
   --yellow: #f2c94c;
@@ -21,6 +24,9 @@ body {
 }
 b, h2, .tabs button, .btn, .chip { font-family: Fredoka, Nunito, sans-serif; }
 button { font: inherit; color: inherit; cursor: pointer; }
+/* one clear keyboard focus ring everywhere (mouse clicks do not show it) */
+:focus-visible { outline: 3px solid var(--blue); outline-offset: 2px; }
+.speed button:focus-visible, .tabs button:focus-visible { outline-offset: -4px; }
 #city { position: fixed; inset: 0; width: 100%; height: 100%; display: block; cursor: grab; }
 body.photo #city { filter: contrast(1.07) saturate(1.12); }
 #city.dragging { cursor: grabbing; }
@@ -67,7 +73,7 @@ body.photo #city { filter: contrast(1.07) saturate(1.12); }
 .build-head { display: flex; align-items: center; justify-content: space-between; padding: 8px 10px; border-bottom: 2.5px solid var(--ink); }
 .build-head b { font-size: 18px; }
 .chip { border: 2px solid var(--ink); background: #fff; border-radius: 999px; padding: 2px 9px; font-size: 12px; font-weight: 600; }
-.chip.on { background: var(--red); color: #fff; }
+.chip.on { background: var(--red-ink); color: #fff; }
 .build-list { overflow-y: auto; padding: 8px; display: flex; flex-direction: column; gap: 7px; }
 .bcard {
   display: grid; grid-template-columns: 38px 1fr; gap: 2px 8px; text-align: left; position: relative;
@@ -78,16 +84,18 @@ body.photo #city { filter: contrast(1.07) saturate(1.12); }
 .bcard .band { grid-column: 1 / -1; height: 7px; margin-bottom: 4px; border-bottom: 2px solid var(--ink); }
 .bcard .ico { grid-row: span 2; font-size: 24px; display: grid; place-items: center; padding-left: 6px; }
 .bcard .nm { font-family: Fredoka, sans-serif; font-weight: 600; font-size: 14px; line-height: 1.1; }
-.bcard .pr { font-size: 12px; font-weight: 800; color: var(--green); }
+.bcard .pr { font-size: 12px; font-weight: 800; color: var(--green-ink); }
 .bcard .pr span { color: var(--muted); font-weight: 700; }
 .bcard.on { background: #fff4c2; box-shadow: inset 0 0 0 2px var(--yellow); }
-.bcard.cant .pr { color: var(--red); }
-.bcard.locked { opacity: .5; filter: grayscale(.8); cursor: not-allowed; }
-.bcard.locked .pr { color: var(--muted); }
+.bcard.cant .pr { color: var(--red-ink); }
+/* locked: greyed out without opacity, so "🔒 30 residents" stays readable (at opacity .5 it was 2:1) */
+.bcard.locked { background: #f7f3ea; cursor: not-allowed; }
+.bcard.locked .band, .bcard.locked .ico { filter: grayscale(1); opacity: .6; }
+.bcard.locked .nm, .bcard.locked .pr { color: var(--muted); }
 /* built / allowed counter: its own line under the price, in the text column (it used to land in the
    38px icon column and spill over the card edge) */
 .bcard .cnt, .bcard.cant .cnt { grid-column: 2; font-size: 11.5px; font-weight: 700; color: var(--muted); }
-.bcard.new::after { content: 'NEW'; position: absolute; right: 6px; top: 12px; background: var(--red); color: #fff; font: 700 9px Fredoka; padding: 1px 5px; border-radius: 6px; }
+.bcard.new::after { content: 'NEW'; position: absolute; right: 6px; top: 12px; background: var(--red-ink); color: #fff; font: 700 9px Fredoka; padding: 1px 5px; border-radius: 6px; }
 
 /* ---------- side panel ---------- */
 .panel { position: fixed; right: 10px; top: calc(var(--hud-bottom, 76px) + 10px); width: 360px; bottom: 196px; display: flex; flex-direction: column; z-index: 4; overflow: hidden; }
@@ -106,7 +114,7 @@ body.photo #city { filter: contrast(1.07) saturate(1.12); }
 .btn { border: 2px solid var(--ink); background: #fff; border-radius: 10px; padding: 6px 12px; font-weight: 600; font-size: 13px; box-shadow: 0 2px 0 var(--ink); transition: transform .05s; }
 .btn:active { transform: translateY(2px); box-shadow: none; }
 .btn.primary { background: #318361; color: #fff; }   /* darker than --green so white text reaches 4.6:1 */
-.btn.warn { background: var(--red); color: #fff; }
+.btn.warn { background: var(--red-ink); color: #fff; }   /* white on --red was 3.6:1 */
 .btn.small { padding: 2px 8px; font-size: 12px; }
 .btn:disabled { opacity: .45; cursor: not-allowed; }
 .row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
@@ -114,7 +122,7 @@ body.photo #city { filter: contrast(1.07) saturate(1.12); }
 .ledger { width: 100%; border-collapse: collapse; font-size: 13px; }
 .ledger td { padding: 3px 2px; border-bottom: 1px dashed #d8c9a3; }
 .ledger td:last-child { text-align: right; font-weight: 800; }
-.ledger .pos { color: var(--green); } .ledger .neg { color: var(--red); }
+.ledger .pos { color: var(--green-ink); } .ledger .neg { color: var(--red-ink); }
 .ledger tr.total td { border-top: 2px solid var(--ink); border-bottom: 0; font-size: 14px; }
 .chart { width: 100%; height: 90px; display: block; background: #fff; border: 2px solid var(--ink); border-radius: 10px; }
 .slider { width: 100%; accent-color: var(--blue); }
@@ -129,16 +137,16 @@ body.photo #city { filter: contrast(1.07) saturate(1.12); }
 .recipe .out { font: 600 14px Fredoka; }
 .recipe .ins { font-size: 12px; display: flex; gap: 6px; flex-wrap: wrap; grid-column: 1; }
 .recipe .ins span { background: var(--paper-2); border-radius: 6px; padding: 1px 6px; }
-.recipe .ins span.lack { background: #fde2e2; color: var(--red); }
+.recipe .ins span.lack { background: #fde2e2; color: var(--red-ink); }
 .queue { display: flex; gap: 6px; flex-wrap: wrap; min-height: 44px; background: var(--paper-2); border-radius: 10px; padding: 6px; border: 2px dashed #d8c9a3; }
 .qitem { width: 40px; height: 40px; border: 2px solid var(--ink); border-radius: 9px; background: #fff; position: relative; display: grid; place-items: center; font-size: 18px; overflow: hidden; }
 .qitem i { position: absolute; left: 0; bottom: 0; height: 5px; background: var(--green); }
 
-/* market */
-.mrow { display: grid; grid-template-columns: 1fr 62px 70px auto; gap: 6px; align-items: center; background: #fff; border: 2px solid var(--ink); border-radius: 10px; padding: 5px 7px; margin-bottom: 6px; font-size: 13px; }
-.mrow .nm { font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.mrow .pr { font-weight: 800; text-align: right; }
-.mrow .up { color: var(--green); } .mrow .down { color: var(--red); }
+/* market: the name has its own line (squeezed next to the chart it was cut to "Sili…", "Cop…") */
+.mrow { display: grid; grid-template-columns: 62px minmax(0, 1fr) auto; gap: 2px 8px; align-items: center; background: #fff; border: 2px solid var(--ink); border-radius: 10px; padding: 5px 7px; margin-bottom: 6px; font-size: 13px; }
+.mrow .nm { grid-column: 1 / -1; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mrow .pr { font-weight: 800; }
+.mrow .up { color: var(--green-ink); } .mrow .down { color: var(--red-ink); }
 .mrow canvas { width: 62px; height: 22px; }
 
 /* integrations */
@@ -150,7 +158,7 @@ body.photo #city { filter: contrast(1.07) saturate(1.12); }
 .integ .path { font-size: 11px; color: var(--muted); font-weight: 800; }
 .integ p { margin: 3px 0 6px; font-size: 12px; }
 .tag { display: inline-block; font-size: 11px; font-weight: 800; background: var(--paper-2); border-radius: 6px; padding: 1px 6px; margin-right: 4px; }
-.tag.lack { background: #fde2e2; color: var(--red); }
+.tag.lack { background: #fde2e2; color: var(--red-ink); }
 
 /* automation */
 .rule { background: #fff; border: 2px solid var(--ink); border-radius: 12px; padding: 8px 10px; margin-bottom: 8px; font-size: 13px; position: relative; }
@@ -158,7 +166,7 @@ body.photo #city { filter: contrast(1.07) saturate(1.12); }
 .rule.fired { animation: fired .8s; }
 @keyframes fired { 30% { background: #fff4c2; transform: scale(1.02); } }
 .rule .w { color: var(--blue); font-weight: 800; }
-.rule .t { color: var(--green); font-weight: 800; }
+.rule .t { color: var(--green-ink); font-weight: 800; }
 .rule .ctl { position: absolute; top: 6px; right: 6px; display: flex; gap: 4px; }
 .builder { background: var(--paper-2); border: 2px solid var(--ink); border-radius: 12px; padding: 8px; display: grid; gap: 6px; font-size: 13px; }
 .builder label { font-weight: 800; font-size: 12px; }
@@ -194,9 +202,12 @@ body.photo #city { filter: contrast(1.07) saturate(1.12); }
 .toast { background: var(--paper); border: 2.5px solid var(--ink); border-radius: 12px; box-shadow: var(--shadow); padding: 6px 14px; font: 600 14px Fredoka; animation: toast 2.6s forwards; }
 .toast.err { background: #fde2e2; } .toast.ok { background: #e9f6df; }
 @keyframes toast { 0% { opacity: 0; transform: translateY(-10px); } 10%, 85% { opacity: 1; transform: none; } 100% { opacity: 0; } }
-.modal { position: fixed; inset: 0; background: rgba(59,47,42,.45); display: grid; place-items: center; z-index: 20; padding: 16px; }
+.modal { position: fixed; inset: 0; background: rgba(59,47,42,.45); display: flex; z-index: 20; padding: 16px; overflow-y: auto; overscroll-behavior: contain; }
 .modal[hidden] { display: none; }
-.modal .card { max-width: 440px; width: 100%; overflow: hidden; }
+/* margin: auto centres the card but, unlike place-items: center, lets a card taller than the screen
+   scroll (on a short or landscape screen the top and the buttons used to be cut off for good) */
+.modal .card { max-width: 440px; width: 100%; overflow: hidden; margin: auto; flex-shrink: 0; }
+.modal .card:focus { outline: none; }
 .modal .card > *:not(.card-band) { margin-left: 18px; margin-right: 18px; }
 .modal h2 { font-size: 28px; margin-top: 12px; margin-bottom: 4px; }
 .modal p { margin-top: 0; }
@@ -304,3 +315,9 @@ body.photo #city { filter: contrast(1.07) saturate(1.12); }
 @keyframes glow { 50% { outline-color: var(--red); box-shadow: 0 0 0 6px rgba(242,201,76,.45); } }
 @media (max-width: 900px) { .tutorial { top: auto; bottom: 154px; } }
 .btn.on { outline: 3px solid var(--ink); outline-offset: 1px; transform: translateY(2px); box-shadow: none; }
+
+/* reduced motion: no pulsing, blinking or sliding; state changes still show, just without movement */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+  .toast { animation: none; }
+}

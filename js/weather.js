@@ -8,7 +8,7 @@ export const COORDS = {
 };
 
 // kind: clear | cloudy | fog | drizzle | rain | snow | storm
-export const weather = { kind: 'clear', temp: null, wind: 0, live: true, loaded: false, gloom: 0, sunBlock: 0, intensity: 0, city: null };
+export const weather = { kind: 'clear', temp: null, wind: 0, live: true, loaded: false, loading: false, gloom: 0, sunBlock: 0, intensity: 0, city: null };
 
 const KINDS = {
   clear:   { icon: '☀️', label: 'Clear',        gloom: 0,    sunBlock: 0,    intensity: 0 },
@@ -34,22 +34,28 @@ function apply(kind) {
   renderBadge();
 }
 
-let liveKind = 'clear', timer = null;
+let liveKind = 'clear', timer = null, request = 0;
 export async function loadWeather(cityId, cityName) {
-  weather.city = cityName;
+  // Only the newest request counts: when the player switches cities while an older answer is still
+  // on its way, that late answer must not paint the old city's weather (or restart its refresh timer).
+  const mine = ++request;
+  clearTimeout(timer);
+  // a new city: show "Loading" instead of the old city's weather (or "offline") until the answer is in
+  if (weather.city !== cityName) { weather.city = cityName; weather.loading = true; renderBadge(); }
   const [lat, lon] = COORDS[cityId] || COORDS.antwerpen;
+  let next = null;
   try {
     const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code,wind_speed_10m,cloud_cover&timezone=Europe%2FBrussels`;
     const r = await fetch(url);
-    const j = await r.json();
-    const c = j.current;
-    weather.temp = Math.round(c.temperature_2m);
-    weather.wind = c.wind_speed_10m || 0;
-    liveKind = fromCode(c.weather_code, c.cloud_cover);
-    weather.loaded = true;
-  } catch { weather.loaded = false; }
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    const c = (await r.json()).current;
+    next = { temp: Math.round(c.temperature_2m), wind: c.wind_speed_10m || 0, kind: fromCode(c.weather_code, c.cloud_cover) };
+  } catch { /* offline or the service is down: shown as "Weather offline" */ }
+  if (mine !== request) return;
+  weather.loading = false;
+  if (next) { weather.temp = next.temp; weather.wind = next.wind; liveKind = next.kind; weather.loaded = true; }
+  else { weather.loaded = false; weather.temp = null; liveKind = 'clear'; }
   weather.live = true; apply(liveKind);
-  clearTimeout(timer);
   timer = setTimeout(() => loadWeather(cityId, cityName), 10 * 60 * 1000);
 }
 
@@ -58,6 +64,11 @@ function renderBadge() {
   if (!el) return;
   const k = KINDS[weather.kind];
   const t = weather.temp != null && weather.live ? `${weather.temp}°C` : '';
+  if (weather.loading) {
+    el.innerHTML = `<i>⏳</i><div><small>Live · ${weather.city}</small><b>Loading…</b></div>`;
+    el.title = `Fetching the real weather in ${weather.city}…`;
+    return;
+  }
   el.innerHTML = `<i>${k.icon}</i><div><small>${weather.loaded ? `Live · ${weather.city}` : 'Weather offline'}</small><b>${k.label}${t ? ' · ' + t : ''}</b></div>${weather.live && weather.loaded ? '<span class="live-dot"></span>' : ''}`;
   el.title = weather.loaded ? `Real weather in ${weather.city} right now (wind ${Math.round(weather.wind)} km/h), refreshed every 10 minutes.` : 'Could not reach the weather service.';
 }

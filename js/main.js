@@ -31,7 +31,24 @@ UI.renderPanel(true);
 G.logs.slice().reverse().forEach(UI.pushLog);
 let firstVisit = true;
 try { firstVisit = !localStorage.getItem('uptime-city-seen'); localStorage.setItem('uptime-city-seen', '1'); } catch {}
-document.getElementById('menu').hidden = !firstVisit;
+// ---------- menu (Mayor's office) ----------
+// A real dialog: focus moves into it when it opens and goes back to where it was when it closes.
+const menuEl = document.getElementById('menu');
+let menuReturn = null;
+function openMenu() {
+  if (!menuEl.hidden) return;
+  menuReturn = document.activeElement;
+  menuEl.hidden = false;
+  menuEl.querySelector('.card').focus({ preventScroll: true });
+  menuEl.scrollTop = 0;
+}
+function closeMenu() {
+  if (menuEl.hidden) return;
+  menuEl.hidden = true;
+  if (menuReturn && menuReturn !== document.body && document.contains(menuReturn)) menuReturn.focus({ preventScroll: true });
+  menuReturn = null;
+}
+if (firstVisit) openMenu();
 
 // ---------- game events → visuals ----------
 G.on((type, d) => {
@@ -76,7 +93,7 @@ setInterval(() => { UI.renderBuildList(); tickTutorial(); }, 1000);
 // ---------- speed ----------
 function setSpeed(s) {
   speed = s; sim.speed = s;
-  document.querySelectorAll('[data-speed]').forEach((b) => b.classList.toggle('on', +b.dataset.speed === s));
+  document.querySelectorAll('[data-speed]').forEach((b) => { const on = +b.dataset.speed === s; b.classList.toggle('on', on); b.setAttribute('aria-pressed', on); });
 }
 document.querySelectorAll('[data-speed]').forEach((b) => b.onclick = () => setSpeed(+b.dataset.speed));
 
@@ -144,8 +161,12 @@ cv.addEventListener('wheel', (e) => {
 // ---------- keyboard ----------
 window.addEventListener('keydown', (e) => {
   unlockAudio();
-  if (e.target.matches('input, select')) return;
-  if (e.key === 'Escape') { UI.setTool(null); UI.showInspector(null); document.getElementById('menu').hidden = true; }
+  if (e.target.matches('input, select, textarea')) return;
+  // browser shortcuts (Ctrl+P prints, Ctrl+F finds) are not game shortcuts
+  if (e.ctrlKey || e.metaKey || e.altKey) return;
+  if (e.key === 'Escape') { UI.setTool(null); UI.showInspector(null); closeMenu(); return; }
+  // while the Mayor's office is open the game behind it does not react to keys
+  if (!menuEl.hidden) return;
   if (e.key === ' ') { e.preventDefault(); setSpeed(speed ? 0 : 1); }
   if (e.key === 'f') fitView(true);
   if (e.key === 'p') { togglePhoto(); syncPhoto(); }
@@ -155,15 +176,15 @@ window.addEventListener('keydown', (e) => {
 
 // ---------- buttons ----------
 document.getElementById('tool-bulldoze').onclick = () => UI.setTool(ui.tool === 'bulldoze' ? null : 'bulldoze');
-const syncPhoto = () => { document.body.classList.toggle('photo', photo.on); document.getElementById('btn-photo').classList.toggle('on', photo.on); };
+const syncPhoto = () => { const b = document.getElementById('btn-photo'); document.body.classList.toggle('photo', photo.on); b.classList.toggle('on', photo.on); b.setAttribute('aria-pressed', photo.on); };
 syncPhoto();
 document.getElementById('btn-photo').onclick = () => { togglePhoto(); syncPhoto(); };
 document.getElementById('btn-fit').onclick = () => fitView(true);
-document.getElementById('btn-menu').onclick = () => { document.getElementById('menu').hidden = false; };
-document.getElementById('m-close').onclick = () => { document.getElementById('menu').hidden = true; initTutorial(); };
-document.getElementById('m-tut').onclick = () => { document.getElementById('menu').hidden = true; startTutorial(); };
+document.getElementById('btn-menu').onclick = openMenu;
+document.getElementById('m-close').onclick = () => { closeMenu(); initTutorial(); };
+document.getElementById('m-tut').onclick = () => { closeMenu(); startTutorial(); };
 if (!firstVisit) initTutorial();
-document.getElementById('m-save').onclick = () => UI.toast(G.save() ? '💾 Saved!' : 'Could not save in this browser', G.save() ? 'ok' : 'err');
+document.getElementById('m-save').onclick = () => { const ok = G.save(); UI.toast(ok ? '💾 Saved!' : 'Could not save in this browser', ok ? 'ok' : 'err'); };
 const CITY_ICONS = { antwerpen: '⚓', brussel: '⚛️', gent: '🏰', oasis: '🐐' };
 function renderCities() {
   const box = document.getElementById('cities');
@@ -172,13 +193,16 @@ function renderCities() {
     // only what the player built counts: landmarks and the starting houses (base) are part of every new city
     const started = G.buildingsList().some((x) => !BUILDINGS[x.type].landmark && !BUILDINGS[x.type].base) || G.S.day > 1;
     if (started && !confirm(`Start a new city in ${MAPS[b.dataset.city].name}? Your current city will be lost.`)) return;
-    G.wipe(b.dataset.city); document.getElementById('menu').hidden = true; initTutorial();
+    G.wipe(b.dataset.city); closeMenu(); initTutorial();
   });
 }
 renderCities();
 document.getElementById('console-toggle').onclick = (e) => {
-  const c = document.getElementById('console'); c.classList.toggle('collapsed');
-  e.target.textContent = c.classList.contains('collapsed') ? '▴' : '▾';
+  const c = document.getElementById('console'), btn = e.currentTarget;
+  const open = !c.classList.toggle('collapsed');
+  btn.textContent = open ? '▾' : '▴';
+  const label = open ? 'Hide the city log' : 'Show the city log';
+  btn.title = label; btn.setAttribute('aria-label', label); btn.setAttribute('aria-expanded', open);
 };
 window.addEventListener('beforeunload', () => G.save());
 

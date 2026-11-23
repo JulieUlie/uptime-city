@@ -5,7 +5,7 @@ const KEY = 'uptime-city-tutorial';
 const c = (t) => G.D.counts[t] || 0;
 const STEPS = [
   { title: 'Welcome, Mayor! 👋', text: 'You run a city where everything is connected: homes pay tax, factories make parts, and IT systems automate the boring stuff. Let\'s build your first neighbourhood.', manual: 'Let\'s go' },
-  { title: '1 · Wi-Fi first 📶', text: 'Buildings without signal work at half speed. Pick <b>5G Lamppost</b> in the build list on the left, then click a green lot.', hl: '[data-b="lamp"]', done: () => c('lamp') >= 1 },
+  { title: '1 · Wi-Fi first 📶', text: 'Buildings without signal work at half speed. Pick <b>5G Lamppost</b> in the build list, then click a green lot.', hl: '[data-b="lamp"]', done: () => c('lamp') >= 1 },
   { title: '2 · Homes 🏠', text: 'Build <b>2 Gable Houses</b> inside the teal Wi-Fi circle. Residents pay tax every hour.', hl: '[data-b="gable"]', done: () => c('gable') >= 2 },
   { title: '3 · Power ⚡', text: 'Every building uses power. Watch the ⚡ number at the top. Build a <b>Solar Roof</b> to keep it positive.', hl: '[data-b="solar"]', done: () => c('solar') >= 1 },
   { title: '4 · Raw materials ⛏️', text: 'Build a <b>Silicon Quarry</b> and a <b>Copper Works</b>. They fill your inventory every hour.', hl: '[data-b="quarry"]', done: () => c('quarry') >= 1 && c('copper') >= 1 },

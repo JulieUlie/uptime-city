@@ -8,7 +8,8 @@ import { join } from 'node:path';
 // The whole folder is the website and wrangler restarts on every change in it, so test output goes
 // outside the folder.
 const OUT = join(tmpdir(), 'uptime-city-playwright');
-const PORT = 8794;
+// another port when 8794 is taken: UPTIME_TEST_PORT=8797 npm test
+const PORT = Number(process.env.UPTIME_TEST_PORT) || 8794;
 const BASE_URL = `http://127.0.0.1:${PORT}`;
 
 export default defineConfig({
@@ -18,6 +19,8 @@ export default defineConfig({
   retries: process.env.CI ? 1 : 0,
   // the game draws an animated city all the time; too many browsers at once starve each other
   workers: 3,
+  // a busy machine can take more than the default 30 s just to start the game in a fresh browser
+  timeout: 60_000,
   expect: { timeout: 10_000 },
   outputDir: join(OUT, 'test-results'),
   reporter: [['list'], ['html', { open: 'never', outputFolder: join(OUT, 'report') }]],
